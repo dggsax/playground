@@ -5,6 +5,6 @@ Will clean this up when I have better understanding of threads.
 
 # Helpful Links
 
-https://christopherdavis.me/blog/threading-basics.html __
-https://pymotw.com/2/threading/ __
+https://christopherdavis.me/blog/threading-basics.html <br />
+https://pymotw.com/2/threading/ <br />
 https://google.com/
