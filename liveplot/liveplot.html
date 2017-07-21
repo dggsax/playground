@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Live Matplotlib</title>
+    <link rel="stylesheet" href="/css/gui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script> <!--jquery-->
+  </head>
+
+  <body>
+    <p>This is an example of sourcing and updating a matplotlib plot with flask</p>
+    <div>
+      <div id="placehere"></div>
+    </div>
+    <script>
+      var built = false;
+      if ( ! built ) {
+        console.log("Hi! I'm building for the first time");
+        var elem = document.createElement("img");
+        $(elem).attr("id","photo")
+        elem.src = "/simple.png";
+        document.getElementById("placehere").append(elem);
+        built = true
+      }
+      $("#photo").on('load', function() {
+        // setTimeout(function(){
+          $("#photo").attr("src", "/simple.png?" + new Date().getTime());
+        // }, 50);
+      });
+    </script>
+  </body>
+</html>
