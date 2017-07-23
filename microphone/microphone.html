@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <!-- Importing Javascript files -->
+  <script src="/static/d3.min.js"></script>
+  <script src="/static/jquery.js"></script>
   <script src="/static/socket.io.js"></script>
   <script src="/static/timeseries.js" ></script>
   <script src="/static/parallel.js" ></script>
-  <link rel="stylesheet" href="/static/gui.css">
 
+  <!-- Importing css files -->
+  <link rel="stylesheet" href="/static/gui.css">
 
 </head>
 <body>
@@ -17,31 +19,33 @@
   </div>
 </body>
 
+<!-- This is the javascript that builds, deploys and modifies the live fft. -->
 <script>
-var mouseX, mouseY;
-$(document).mousemove(function(e){
-        mouseX = e.pageX;
-        mouseY = e.pageY;
-});
-
-var MAX = 3;
-var MIN = -0.2;
-var PLOT_HEIGHT = 200;
-var PLOT_WIDTH = 300;
+// This sets up stuff for the Parallel Plot
+// A parallel plot is a plot where you can update multiple
+// y values at the same time, in this case it's 1024 as you can
+// see from line 40 where we declare and build the fft_plot
+var MAX = 15;
+var MIN = -1;
+var PLOT_HEIGHT = 300;
+var PLOT_WIDTH = 400;
 var lit = [0,5,10,15,25];
 var LABELS = ["frequency", "decibels"];
 var plot;
 var plot2;
 var TYPE = "line";
+
+// window.onload just means whenever the page loads
 window.onload = function(){
     var socket = io('http://localhost:3000');
     var unique = 456;
-    // plot = new Time_Series("plotbox",'Microphone Input in dB',PLOT_WIDTH, PLOT_HEIGHT,20000,[-100,100],1,["green"],unique+1,socket);
-    plot2 = new Parallel_Plot(1024,LABELS,PLOT_WIDTH, PLOT_HEIGHT,MAX,MIN,"black",unique+1,TYPE);
+    fft_plot = new Parallel_Plot(1024,LABELS,PLOT_WIDTH, PLOT_HEIGHT,MAX,MIN,"black",unique+1,TYPE);
     // Updating!
     if (socket != null){
+        // Um, so yeah whenever it gets "update_457" it updates the plot
+        // .step() is a function that myself and wei wrote. fun times.
         socket.on("update_457",function(values){
-            plot2.step(values);
+            fft_plot.step(values);
         });
     }
 }

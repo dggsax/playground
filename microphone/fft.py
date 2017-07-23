@@ -5,77 +5,6 @@ from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room,close_room, rooms, disconnect
 import pyaudio
 import numpy as np
-# Set this variable to "threading", "eventlet" or "gevent" to test the
-# different async modes, or leave it set to None for the application to choose
-# the best option based on available packages.
-#async_mode = 'threading'
-#async_mode = 'eventlet'
-async_mode = None
-if async_mode is None:
-    try:
-        import eventlet
-        async_mode = 'eventlet'
-    except ImportError:
-        pass
-
-    if async_mode is None:
-        try:
-            from gevent import monkey
-            async_mode = 'gevent'
-        except ImportError:
-            pass
-
-    if async_mode is None:
-        async_mode = 'threading'
-
-    print('async_mode is ' + async_mode)
-
-# monkey patching is necessary because this application uses a background
-# thread
-if async_mode == 'eventlet':
-    import eventlet
-    eventlet.monkey_patch()
-elif async_mode == 'gevent':
-    from gevent import monkey
-    monkey.patch_all()
-
-#Start up Flask server:
-app = Flask(__name__, template_folder = './',static_url_path='/static')
-app.config['SECRET_KEY'] = 'secret!' #shhh don't tell anyone. Is a secret
-socketio = SocketIO(app, async_mode = async_mode)
-thread = None
-
-def micThread():
-    # First time setup
-    first_time = True
-    if ( first_time ):
-        wow = SpectrumAnalyzer()
-        first_time = False
-
-    # Etc
-    # There's a bunch of timing stuff in here that really isn't
-    # necessary for you to understand, but like like 90 is pretty
-    # as you can see it will send the update_457 socket that 
-    # the microphone.html will listen for
-    unique = 456
-    burst_duration = 1
-    counter = 0
-    toggle_count = 500
-    on_state = True
-    while True:
-        counter +=1
-        if counter%burst_duration == 0:
-            socketio.emit('update_{}'.format(unique+1),wow.fft(),broadcast =True)
-        if counter%toggle_count == 0:
-            counter = 0
-            if on_state:
-                print("OFF")
-            else:
-                print("ON")
-            on_state = not on_state
-        
-        time.sleep(0.001)
-
 
 class SpectrumAnalyzer:
     # Start Pyaudio
@@ -99,6 +28,7 @@ class SpectrumAnalyzer:
     spec_y = 0
     data = []
 
+    # Initializes whenever the class object is called.
     def __init__(self):
         # This sets up the audio stream where we start a stream
         # that inputs a live audio feed.
@@ -136,25 +66,26 @@ class SpectrumAnalyzer:
         # said in my initial email to you, it's hard stuff.
         self.spec_y = [np.sqrt(c.real ** 2 + c.imag ** 2) for c in y]
         # The fft array that line 161 returns is mirrored so essentially
-        # lines 163 and 164 chop the array in half, and then flip it
-        # and voula we're returning an fft!
+        # lines 71 and 72 chop the array in half, and then flip it
+        # and voila we're returning an fft!
         half = len((self.spec_y))/2
         self.spec_y = self.spec_y[:half]
         return self.spec_y[::-1]
 
-# Start the web app
-@app.route('/')
-def index():
-    global thread
-    print ("A user connected")
-    if thread is None:
-        # Start the micThread (the live fft stuffs)
-        thread = Thread(target=micThread)
-        thread.daemon = True
-        thread.start()
-    # Build the website!
-    return render_template('microphone.html')
-
+def main():
+    # First time setup
+    first_time = True
+    if ( first_time ):
+        # Initialize a class object
+        wow = SpectrumAnalyzer()
+        first_time = False
+    try:
+        while True:
+            wow.fft()
+            time.sleep(1)
+    except:
+        print("Bad feels, man :(")
+    
 
 if __name__ == '__main__':
-    socketio.run(app, port=3000, debug=True)
+    main()
