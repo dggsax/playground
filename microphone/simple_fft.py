@@ -1,10 +1,8 @@
 import time
 import math
-from threading import Thread, Lock
-from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room,close_room, rooms, disconnect
-import pyaudio
 import numpy as np
+import pyaudio
+import sys
 
 class SpectrumAnalyzer:
     # Start Pyaudio
@@ -20,6 +18,8 @@ class SpectrumAnalyzer:
     RATE = int(device['defaultSampleRate'])
     START = 0
     N = CHUNK  
+
+    
 
     # Setting up stuffs
     wave_x = 0
@@ -51,7 +51,6 @@ class SpectrumAnalyzer:
     def audioinput(self):
         data = np.fromstring(self.stream.read(self.CHUNK),dtype=np.float32)
         return data
-        clear(data)
 
     # This takes the data stream and performs the fft.
     def fft(self):
@@ -67,27 +66,33 @@ class SpectrumAnalyzer:
         # said in my initial email to you, it's hard stuff.
         self.spec_y = [np.sqrt(c.real ** 2 + c.imag ** 2) for c in y]
         # The fft array that line 161 returns is mirrored so essentially
-        # lines 71 and 72 chop the array in half, and then flip it
+        # lines 69 and 70 chop the array in half, and then flip it
         # and voila we're returning an fft!
-        half = len((self.spec_y))/2
-        self.spec_y = self.spec_y[:half]
-        return self.spec_y[::-1]
+        half_y = len((self.spec_y))/2
+        half_x = len((self.spec_x))/2
+        self.spec_y = self.spec_y[:half_y]
+        self.spec_x = self.spec_x[:half_x]
+        # return self.spec_x[::-1], self.spec_y[::-1]
+        return self.spec_x, self.spec_y
 
-def main():
-    # First time setup
-    first_time = True
-    if ( first_time ):
-        # Initialize a class object
-        wow = SpectrumAnalyzer()
-        first_time = False
-    try:
-        while True:
-            print("Hi!")
-            print(wow.fft())
-            time.sleep(1)
-    except:
-        print("Bad feels, man :(")
-    
+# First time setup
+first_time = True
+if ( first_time ):
+    # Initialize a class object
+    wow = SpectrumAnalyzer()
+    first_time = False
 
-if __name__ == '__main__':
-    main()
+try:
+    while True:
+        print("hi")
+        print(wow.fft())
+        time.sleep(.02)    # can't sleep for any faster than .02.
+except IOError:
+    print("IO Error. Probably input overflowed.")
+    print("Make sure that as you loop through")
+    print("the fft() function of the Spectrum")
+    print("class that you give it enough time")
+    print("to sleep. I found that it has to be")
+    print("less than .02 seconds. It's annoying,")
+    print(" I know. Errno -9981 in case you ")
+    print("were wondering.")
