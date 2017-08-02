@@ -1,10 +1,6 @@
 from flask import Flask, render_template, request, url_for, jsonify, send_from_directory
 from flaskext.mysql import MySQL
 from flask_restful import Resource, Api
-from math import cos
-
-# Calls iphone shit
-from ios_manager import ListManager, NicknameManager, LocationManager
 
 # Calls the flask files for each page
 from pages.index import apOnline, apOffline, uniqueDevices
